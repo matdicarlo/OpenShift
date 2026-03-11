@@ -1,0 +1,51 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: camel-build-template
+parameters:
+  - name: APP_NAME
+    description: Name of the application
+    value: camel-producer
+  - name: GIT_REPO_URL
+    description: URL of the Git repository
+    value: "https://github.com/matdicarlo/Camel-Integration.git"
+  - name: GIT_CONTEXT_DIR
+    description: Subdirectory within the Git repo
+    value: "JMSCamelProducer"
+  - name: BUILDER_IMAGE
+    description: The S2I builder image to use
+    value: "registry.access.redhat.com/ubi8/openjdk-17:latest"
+
+objects:
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: "${APP_NAME}"
+    spec:
+      lookupPolicy:
+        local: true
+
+  - apiVersion: build.openshift.io/v1
+    kind: BuildConfig
+    metadata:
+      name: "${APP_NAME}"
+    spec:
+      source:
+        type: Git
+        git:
+          uri: "${GIT_REPO_URL}"
+        contextDir: "${GIT_CONTEXT_DIR}"
+      strategy:
+        type: Source
+        sourceStrategy:
+          from:
+            kind: DockerImage
+            name: "${BUILDER_IMAGE}"
+          env:
+            - name: MAVEN_ARGS
+              value: "-DskipTests"
+      output:
+        to:
+          kind: ImageStreamTag
+          name: "${APP_NAME}:latest"
+
