@@ -1,3 +1,5 @@
+#This is an example to how to push a local image to OCP internal registry
+
 #1 load image in podman
 $podman load -i image.tar.gz
 
